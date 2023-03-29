@@ -45,7 +45,6 @@ public class Application {
     public MessageListenerAdapter listenerAdapter(Consumer receiver){
         return new MessageListenerAdapter(receiver, "receiveMessage");
     }
-
     @Bean
     public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();

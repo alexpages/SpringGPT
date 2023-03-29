@@ -22,7 +22,7 @@ public class Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Sending a message");
-        String message = "Mensaje de Prueba";
+        String message = "MENSAJEEEE";
         rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "foo.bar.baz",message);
     }
 }
