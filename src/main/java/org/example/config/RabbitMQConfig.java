@@ -1,41 +1,31 @@
 package org.example.config;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConnectionFactory;
+import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 @Configuration
 public class RabbitMQConfig {
+    private String userName = "guest";
+    private String password = "guest";
+    private String virtualHost = "/";
+    private String hostName = "localhost";
+    private Integer portNumber = 5672;
+    private final static String QUEUE_NAME = "hello";
 
-    ConnectionFactory factory = new ConnectionFactory();
-    public RabbitMQConfig() {
-        String userName = "guest";
-        String password = "guest";
-        String virtualHost = "/";
-        String hostName = "localhost";
-        Integer portNumber = 5672;
-
+    @Bean
+    public ConnectionFactory factory(){
+        ConnectionFactory factory = new ConnectionFactory();
         factory.setUsername(userName);
         factory.setPassword(password);
         factory.setVirtualHost(virtualHost);
         factory.setHost(hostName);
         factory.setPort(portNumber);
+        return factory;
     }
-    //tbd
-    private final static String QUEUE_NAME = "hello";
-    public void send(String message) throws IOException, TimeoutException {
-        //Connection to the pre-established host in constructor, in this case
-        //localhost
-        try (Connection connection = factory.newConnection();
-             Channel channel = connection.createChannel()){
-
-            channel.queueDeclare(QUEUE_NAME,false,false,false,null);
-            channel.basicPublish("", QUEUE_NAME,);
-
-        }
+    @Bean
+    public Queue messagingQueue(){
+        return new Queue(this.QUEUE_NAME);
+    }
 
 }
