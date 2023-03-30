@@ -22,7 +22,8 @@ public class Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Sending a message");
-        String message = "MENSAJEEEE";
+
+        String message = "MESSAGE INCOMING:";
         rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "foo.bar.baz",message);
     }
 }

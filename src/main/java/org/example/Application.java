@@ -4,30 +4,26 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@ConfigurationProperties
 public class Application {
 
     private String userName = "guest";
     private String password = "guest";
     private String virtualHost = "/";
-    private String hostName = "localhost";
+    @Value("${hostname}")
+    private String hostName;
     private Integer portNumber = 15672;
     public final static String QUEUE_NAME = "sb-queue";
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
 
-//    @Bean
-//    public ConnectionFactory factory(){
-//        ConnectionFactory factory = new ConnectionFactory();
-//        factory.setPassword(password);
-//        factory.setVirtualHost(virtualHost);
-//        factory.setHost(hostName);
-//        factory.setPort(portNumber);
-//        return factory;
-//    }
     @Bean
     public Queue messagingQueue(){
         return new Queue(this.QUEUE_NAME);
@@ -53,10 +49,19 @@ public class Application {
         container.setMessageListener(listenerAdapter);
         return container;
     }
-
     //********** MAIN **********//
     public static void main(String[] args) {
         //Initialize Spring and scan for Beans
         SpringApplication.run(Application.class, args).close();
+
+//        Scanner scanner = new Scanner(System.in);
+//        String request = null;
+//        while (request!="q"){
+//            System.out.println("Please insert your request to Chat GPT 3,5");
+//            System.out.println("If you don't want to ask more questions, please, insert 'q'");
+//            request = scanner.nextLine();
+
+//        }
+
     }
 }
