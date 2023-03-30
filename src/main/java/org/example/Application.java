@@ -15,12 +15,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @ConfigurationProperties
 public class Application {
 
-    private String userName = "guest";
-    private String password = "guest";
-    private String virtualHost = "/";
-    @Value("${hostname}")
+    @Value("${SPRINGBOOT_USER_NAME}")
+    private String userName;
+    @Value("${SPRINGBOOT_PASSWORD}")
+    private String password;
+    @Value("${SPRINGBOOT_VIRTUALHOST}")
+    private String virtualHost;
+    @Value("${SPRINGBOOT_HOST}")
     private String hostName;
-    private Integer portNumber = 15672;
+    @Value("${SPRINGBOOT_PORT}")
+    private Integer portNumber;
     public final static String QUEUE_NAME = "sb-queue";
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
 
