@@ -1,7 +1,8 @@
 package org.example.model;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
 @Component
 public class Request {
     private String model = "gpt-3.5-turbo";
@@ -13,15 +14,17 @@ public class Request {
     private int presence_penalty = 0;
 
     //Constructor specifying model
-    @Autowired
     public Request(String model, String prompt) {
         this.model = model;
         this.prompt = prompt;
     }
     //Constructor with given model
-    @Autowired
     public Request(String prompt) {
         this.prompt = prompt;
+    }
+    @Autowired
+    public Request(){
+        this.prompt = "hello";
     }
 
     public String createBody(){

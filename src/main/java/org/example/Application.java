@@ -9,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @ConfigurationProperties
@@ -25,6 +24,7 @@ public class Application {
     private String hostName;
     @Value("${SPRINGBOOT_PORT}")
     private Integer portNumber;
+
     public final static String QUEUE_REQUEST = "sb-request";
     public final static String QUEUE_RESPONSE = "sb-response";
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
@@ -42,8 +42,8 @@ public class Application {
         return BindingBuilder.bind(queue).to(exchange).with("foo.bar.#");
     }
     @Bean
-    public MessageListenerAdapter listenerAdapter(Consumer receiver){
-        return new MessageListenerAdapter(receiver, "receiveMessage");
+    public MessageListenerAdapter listenerAdapter(Consumer consumer){
+        return new MessageListenerAdapter(consumer, "receiveMessage");
     }
     @Bean
     public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
