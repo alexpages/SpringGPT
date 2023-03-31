@@ -25,12 +25,13 @@ public class Application {
     private String hostName;
     @Value("${SPRINGBOOT_PORT}")
     private Integer portNumber;
-    public final static String QUEUE_NAME = "sb-queue";
+    public final static String QUEUE_REQUEST = "sb-request";
+    public final static String QUEUE_RESPONSE = "sb-response";
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
 
     @Bean
     public Queue messagingQueue(){
-        return new Queue(this.QUEUE_NAME);
+        return new Queue(this.QUEUE_REQUEST);
     }
     @Bean
     public TopicExchange topicExchange(){
@@ -40,7 +41,6 @@ public class Application {
     public Binding binding(Queue queue, TopicExchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with("foo.bar.#");
     }
-
     @Bean
     public MessageListenerAdapter listenerAdapter(Consumer receiver){
         return new MessageListenerAdapter(receiver, "receiveMessage");
@@ -49,23 +49,14 @@ public class Application {
     public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(QUEUE_NAME);
+        container.setQueueNames(QUEUE_REQUEST);
         container.setMessageListener(listenerAdapter);
         return container;
     }
+
     //********** MAIN **********//
     public static void main(String[] args) {
         //Initialize Spring and scan for Beans
         SpringApplication.run(Application.class, args).close();
-
-//        Scanner scanner = new Scanner(System.in);
-//        String request = null;
-//        while (request!="q"){
-//            System.out.println("Please insert your request to Chat GPT 3,5");
-//            System.out.println("If you don't want to ask more questions, please, insert 'q'");
-//            request = scanner.nextLine();
-
-//        }
-
     }
 }

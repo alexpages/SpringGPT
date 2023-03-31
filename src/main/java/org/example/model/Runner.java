@@ -13,7 +13,6 @@ public class Runner implements CommandLineRunner {
     private final RabbitTemplate rabbitTemplate;
     private final Consumer consumer;
 
-
     public Runner(RabbitTemplate rabbitTemplate, Consumer consumer) {
         this.rabbitTemplate = rabbitTemplate;
         this.consumer = consumer;
@@ -22,7 +21,6 @@ public class Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Sending a message");
-
         String message = "MESSAGE INCOMING:";
         rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "foo.bar.baz",message);
     }

@@ -1,10 +1,10 @@
 package org.example.model;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 @Component
 public class Request {
-    private String model;
+    private String model = "gpt-3.5-turbo";
     private String prompt; //Message
     private Double temperature = 0.5;
     private int max_tokens = 7;
@@ -12,15 +12,30 @@ public class Request {
     private int frequency_penalty = 1;
     private int presence_penalty = 0;
 
-    public Request(String model, String prompt, Double temperature, int max_tokens, int top_p, int frequency_penalty, int presence_penalty) {
+    //Constructor specifying model
+    @Autowired
+    public Request(String model, String prompt) {
         this.model = model;
         this.prompt = prompt;
-        this.temperature = temperature;
-        this.max_tokens = max_tokens;
-        this.top_p = top_p;
-        this.frequency_penalty = frequency_penalty;
-        this.presence_penalty = presence_penalty;
     }
+    //Constructor with given model
+    @Autowired
+    public Request(String prompt) {
+        this.prompt = prompt;
+    }
+
+    public String createBody(){
+        //creation of json
+        String requestBody = "{\"prompt\": \"" + this.prompt +
+                "\", \"max_tokens\": " + this.max_tokens +
+                "\", \"temperature\": \"" + this.temperature +
+                "\", \"top_p\": \""+ this.top_p +
+                "\", \"frequency_penalty\": \"" + this.frequency_penalty +
+                "\", \"presence_penalty\": \"" + this.presence_penalty + "}";
+        return requestBody;
+    }
+
+    //********** GETTERS/SETTERS **********//
     public String getModel() {
         return model;
     }
