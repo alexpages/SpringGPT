@@ -23,9 +23,10 @@ public class Application {
     private String hostName;
     @Value("${SPRINGBOOT_PORT}")
     private Integer portNumber;
-
-    public final static String QUEUE_REQUEST = "sb-request";
-    public final static String QUEUE_RESPONSE = "sb-response";
+    @Value("${queue.request}")
+    private String QUEUE_REQUEST;
+    @Value("${queue.response}")
+    private String QUEUE_RESPONSE;
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
 
     @Bean
