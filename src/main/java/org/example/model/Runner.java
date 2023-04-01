@@ -26,7 +26,7 @@ public class Runner implements CommandLineRunner {
 //        OpenAiController openAiController = new OpenAiController();
 //        openAiController.sendRequest("Hola");
         System.out.println("Sending a message");
-        String message = "MESSAGE INCOMING:";
-        rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "foo.bar.baz",message);
+        String message = "MESSAGE EXAMPLE MESSAGE EXAMPLE MESSAGE EXAMPLE:";
+        rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "message.response",message);
     }
 }

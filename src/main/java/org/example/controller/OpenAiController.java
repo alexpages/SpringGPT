@@ -1,9 +1,6 @@
 package org.example.controller;
-import org.example.Application;
-import org.example.model.Request;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,9 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,41 +21,40 @@ public class OpenAiController implements CommandLineRunner{
     private String OPENAI_API_KEY;
 
     public void sendRequest(){
-        //Create request
-        String message = "test";
-        Request request = new Request();
-        request.setPrompt(message);
-        RestTemplate restTemplate = new RestTemplate();
-        RestTemplate responseEntity = restTemplate;
-
         //Headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON); //Establish the body will be in .json format
         headers.setBearerAuth(OPENAI_API_KEY);
         String url = "https://api.openai.com/v1/completions";
 
+        //First Try
+//        String message = "test";
+//        RestTemplate restTemplate = new RestTemplate();
+//        RestTemplate responseEntity = restTemplate;
+//        Request request = new Request();
+//        request.setPrompt(message);
+//        HttpEntity entity = new HttpEntity<>(request.createBody(),headers);
+//        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+//        String result = response.getBody();
+//      String response = restTemplate.postForObject(url, entity, String.class);
+
+        //Second Try
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "davinci");
-        requestBody.put("prompt", "Hello,");
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("prompt", "Hello");
         requestBody.put("temperature", 0.5);
         requestBody.put("max_tokens", 50);
-
-                //Http entity to be posted
-//        HttpEntity entity = new HttpEntity<>(request.createBody(),headers);
-
         HttpEntity<Map<String, Object>> request2 = new HttpEntity<>(requestBody, headers);
 
-        RestTemplate tmplate = new RestTemplate();
+        RestTemplate template = new RestTemplate();
 
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
         messageConverters.add(new MappingJackson2HttpMessageConverter());
-        tmplate.setMessageConverters(messageConverters);
-
-        ResponseEntity<String> response = tmplate.postForEntity(url, request2, String.class);
-        String result = response.getBody();
+        template.setMessageConverters(messageConverters);
 
         //Make Request
-//      String response = restTemplate.postForObject(url, entity, String.class);
+        ResponseEntity<String> response = template.postForEntity(url, request2, String.class);
+        String result = response.getBody();
 
         //Print Response
         System.out.println(result);

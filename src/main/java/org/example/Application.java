@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 @ConfigurationProperties
 public class Application {
-
     @Value("${SPRINGBOOT_USER_NAME}")
     private String userName;
     @Value("${SPRINGBOOT_PASSWORD}")
@@ -30,29 +29,38 @@ public class Application {
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
 
     @Bean
-    public Queue messagingQueue(){
+    public Queue requestQueue(){
         return new Queue(this.QUEUE_REQUEST);
+    }
+    @Bean
+    public Queue responseQueue(){
+        return new Queue(this.QUEUE_RESPONSE);
     }
     @Bean
     public TopicExchange topicExchange(){
         return new TopicExchange(this.TOPICEXCHANGE_NAME);
     }
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange){
-        return BindingBuilder.bind(queue).to(exchange).with("foo.bar.#");
+    public Binding bindingRequest(Queue requestQueue, TopicExchange exchange){
+        return BindingBuilder.bind(requestQueue).to(exchange).with("message.request");
+    }
+    @Bean
+    public Binding bindingResponse(Queue responseQueue, TopicExchange exchange){
+        return BindingBuilder.bind(responseQueue).to(exchange).with("message.response");
     }
     @Bean
     public MessageListenerAdapter listenerAdapter(Consumer consumer){
         return new MessageListenerAdapter(consumer, "receiveMessage");
     }
-    @Bean
-    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(QUEUE_REQUEST);
-        container.setMessageListener(listenerAdapter);
-        return container;
-    }
+//    @Bean
+//    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
+//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+//        container.setConnectionFactory(connectionFactory);
+//        container.setQueueNames(QUEUE_REQUEST);
+//        container.setQueueNames(QUEUE_RESPONSE);
+//        container.setMessageListener(listenerAdapter);
+//        return container;
+//    }
 
     //********** MAIN **********//
     public static void main(String[] args) {
