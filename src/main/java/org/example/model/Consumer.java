@@ -28,7 +28,7 @@ public class Consumer {
         return userPrompt;
     }
     public void sendNewRequest(){
-        rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.request", "hello");
+        rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.request", this.userPrompt().toString());
         System.out.println("Sending request");
     }
  }

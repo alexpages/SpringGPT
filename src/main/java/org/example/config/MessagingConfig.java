@@ -1,6 +1,7 @@
 package org.example.config;
 import org.example.controller.Controller;
 import org.example.model.Consumer;
+import org.example.model.Runner;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -8,9 +9,13 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SimpleMessageConverter;
 
 @Configuration
 public class MessagingConfig {
@@ -29,6 +34,8 @@ public class MessagingConfig {
     @Value("${queue.response}")
     private String QUEUE_RESPONSE;
     public final static String TOPICEXCHANGE_NAME = "sb-exchange";
+    @Autowired
+    private ConnectionFactory connectionFactory;
 
     @Bean
     public Queue requestQueue(){
@@ -55,22 +62,27 @@ public class MessagingConfig {
         return new MessageListenerAdapter(consumer, "receiveMessage");
     }
     @Bean
-    public MessageListenerAdapter openAiAdapter(Controller controller){
-        return new MessageListenerAdapter(controller, "receiveRequest");
+    public MessageListenerAdapter openAiAdapter(Runner runner){
+        return new MessageListenerAdapter(runner, "receiveRequest");
+    }
+    @Bean
+    public MessageConverter textMessageConverter() {
+        return new SimpleMessageConverter();
     }
 
     @Bean
-    public SimpleMessageListenerContainer listenerContainerOne(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory, MessageListenerAdapter consumerAdapter) {
+    public SimpleMessageListenerContainer listenerContainerOne(MessageListenerAdapter consumerAdapter) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(QUEUE_RESPONSE);
+//        consumerAdapter.setMessageConverter((org.springframework.amqp.support.converter.MessageConverter) textMessageConverter());
         container.setMessageListener(consumerAdapter);
         container.start();
         return container;
     }
 
     @Bean
-    public SimpleMessageListenerContainer listenerContainerTwo(ConnectionFactory connectionFactory, MessageListenerAdapter openAiAdapter ) {
+    public SimpleMessageListenerContainer listenerContainerTwo(MessageListenerAdapter openAiAdapter ) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(QUEUE_REQUEST);
