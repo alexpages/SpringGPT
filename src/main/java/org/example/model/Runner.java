@@ -10,6 +10,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import java.util.Scanner;
+
 @Component
 public class Runner implements CommandLineRunner {
 
@@ -21,12 +23,16 @@ public class Runner implements CommandLineRunner {
         this.consumer = consumer;
     }
 
+    public String userPrompt(){
+        System.out.println("Enter your response: \n");
+        Scanner scanner = new Scanner(System.in);
+        String userPrompt = scanner.nextLine();
+        return userPrompt;
+    }
+
     @Override
     public void run(String... args) throws Exception {
-//        OpenAiController openAiController = new OpenAiController();
-//        openAiController.sendRequest("Hola");
         System.out.println("Sending a message");
-        String message = "MESSAGE EXAMPLE MESSAGE EXAMPLE MESSAGE EXAMPLE:";
-        rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "message.response",message);
+        rabbitTemplate.convertAndSend(Application.TOPICEXCHANGE_NAME, "message.response", this.userPrompt());
     }
 }

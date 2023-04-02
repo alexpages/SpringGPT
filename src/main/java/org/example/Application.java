@@ -1,4 +1,5 @@
 package org.example;
+import org.example.controller.OpenAiController;
 import org.example.model.Consumer;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.core.*;
@@ -50,18 +51,33 @@ public class Application {
         return BindingBuilder.bind(responseQueue).to(exchange).with("message.response");
     }
     @Bean
-    public MessageListenerAdapter listenerAdapter(Consumer consumer){
+    public MessageListenerAdapter consumerAdapter(Consumer consumer){
         return new MessageListenerAdapter(consumer, "receiveMessage");
     }
-//    @Bean
-//    public SimpleMessageListenerContainer container(ConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter){
-//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-//        container.setConnectionFactory(connectionFactory);
-//        container.setQueueNames(QUEUE_REQUEST);
-//        container.setQueueNames(QUEUE_RESPONSE);
-//        container.setMessageListener(listenerAdapter);
-//        return container;
-//    }
+    @Bean
+    public MessageListenerAdapter openAiAdapter(OpenAiController openAIController){
+        return new MessageListenerAdapter(openAIController, "receiveRequest");
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer listenerContainerOne(ConnectionFactory connectionFactory, MessageListenerAdapter consumerAdapter) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setQueueNames(QUEUE_REQUEST);
+        container.setMessageListener(consumerAdapter);
+        container.start();
+        return container;
+    }
+
+    @Bean
+    public SimpleMessageListenerContainer listenerContainerTwo(ConnectionFactory connectionFactory,MessageListenerAdapter openAiAdapter ) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setQueueNames(QUEUE_RESPONSE);
+        container.setMessageListener(openAiAdapter);
+        container.start();
+        return container;
+    }
 
     //********** MAIN **********//
     public static void main(String[] args) {
