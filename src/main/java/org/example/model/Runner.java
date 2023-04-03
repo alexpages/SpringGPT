@@ -1,9 +1,15 @@
 package org.example.model;
+import com.rabbitmq.client.Command;
 import org.example.config.MessagingConfig;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,13 +23,19 @@ import java.util.concurrent.CountDownLatch;
 
 @Component
 public class Runner {
+
+    //********** ATTRIBUTES **********//
     @Value("${OPENAI_API_KEY}")
     private String OPENAI_API_KEY;
+    @Autowired
+    private ApplicationEventPublisher responseEvent;
+
     private String request;
     private final CountDownLatch latch = new CountDownLatch(3);
     private String responseToSend;
     private final RabbitTemplate rabbitTemplate;
 
+    //********** FUNCTIONS **********//
     public Runner(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
@@ -31,16 +43,15 @@ public class Runner {
     @RabbitListener(queues = "${queue.request}")
     public void receiveRequest (String message) throws InterruptedException {
         this.request = message;
-        latch.countDown();
     }
-
-    public void sendRequest() throws InterruptedException {
+    @EventListener(condition = "event.id == 'request'")
+    public void sendRequest(CustomEvent event) throws InterruptedException {
         //Headers
-        latch.await();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON); //Establish the body will be in .json format
         headers.setBearerAuth(OPENAI_API_KEY);
         String url = "https://api.openai.com/v1/chat/completions";
+
         //Build Open AI request
         Map<String, Object> requestBody = new HashMap<>();
         System.out.println("______________________________________");
@@ -62,12 +73,17 @@ public class Runner {
         List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
         messageConverters.add(new MappingJackson2HttpMessageConverter());
         template.setMessageConverters(messageConverters);
-        ResponseEntity<Object> response = template.postForEntity(url, request, Object.class);
+        ResponseEntity<Object> responseHttp = template.postForEntity(url, request, Object.class);
 
         //Print response
         System.out.println("______________________________________");
-        this.responseToSend = response.toString();
+        this.responseToSend = responseHttp.toString();
         rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.response", this.responseToSend);
         System.out.println("______________________________________");
+
+        CustomEvent response = new CustomEvent(this, "response");
+        responseEvent.publishEvent(response);
+
     }
+
 }
