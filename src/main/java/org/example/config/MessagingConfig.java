@@ -1,5 +1,4 @@
 package org.example.config;
-import org.example.controller.Controller;
 import org.example.model.Consumer;
 import org.example.model.Runner;
 import org.springframework.amqp.core.Binding;
@@ -9,7 +8,6 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -75,7 +73,6 @@ public class MessagingConfig {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(QUEUE_RESPONSE);
-//        consumerAdapter.setMessageConverter((org.springframework.amqp.support.converter.MessageConverter) textMessageConverter());
         container.setMessageListener(consumerAdapter);
         container.start();
         return container;

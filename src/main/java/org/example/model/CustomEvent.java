@@ -12,7 +12,6 @@ public class CustomEvent extends ApplicationEvent {
         super(source);
         this.id = id;
     }
-
     public String getId() {
         return id;
     }
