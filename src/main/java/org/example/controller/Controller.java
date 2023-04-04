@@ -13,11 +13,13 @@ public class Controller implements CommandLineRunner{
     @Autowired
     private Runner runner;
     @Autowired
+    private Consumer consumer;
+    @Autowired
     private ApplicationEventPublisher responseEvent;
 
     @Override
     public void run(String... args) throws Exception {
-        CustomEvent request = new CustomEvent(this, "request");
-        runner.sendRequest(request);
+        CustomEvent request = new CustomEvent(this, "response");
+        consumer.sendNewRequest(request);
     }
 }

@@ -21,19 +21,20 @@ import java.util.concurrent.CountDownLatch;
 
 @Component
 public class Runner {
-
     //********** ATTRIBUTES **********//
     @Value("${OPENAI_API_KEY}")
     private String OPENAI_API_KEY;
     @Autowired
     private ApplicationEventPublisher responseEvent;
     private RestTemplate template = new RestTemplate();
+    private boolean condicion = false;
     @Autowired
     private Response ContentResponse;
-    private String request = "Hello";
+    private String request;
     private String responseToSend;
     private final RabbitTemplate rabbitTemplate;
     private CustomEvent response = new CustomEvent(this, "response");
+    private CountDownLatch latch = new CountDownLatch(0);
 
     //********** FUNCTIONS **********//
     public Runner(RabbitTemplate rabbitTemplate) {
@@ -41,45 +42,51 @@ public class Runner {
     }
 
     @RabbitListener(queues = "${queue.request}")
-    public void receiveRequest (String message) {
+    public void receiveRequest (String message) throws InterruptedException {
         this.request = message;
+        condicion = true;
     }
 
     @EventListener(condition = "event.id == 'request'")
-    public void sendRequest(CustomEvent event) throws IOException {
+    public synchronized void sendRequest(CustomEvent event) throws IOException, InterruptedException {
         //Headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON); //Establish the body will be in .json format
-        headers.setBearerAuth(OPENAI_API_KEY);
-        String url = "https://api.openai.com/v1/chat/completions";
+        if (condicion == true){
+            System.out.println(this.request);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON); //Establish the body will be in .json format
+            headers.setBearerAuth(OPENAI_API_KEY);
+            String url = "https://api.openai.com/v1/chat/completions";
 
-        //Build Open AI request
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-3.5-turbo");
-        List<Map<String, String>> messages = new ArrayList<>();
-        Map<String, String> message = new HashMap<>();
-        messages.add(message);
-        message.put("role", "user");
-        message.put("content", this.request);
-        requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.5);
-        requestBody.put("max_tokens", 300);
+            //Build Open AI request
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "gpt-3.5-turbo");
+            List<Map<String, String>> messages = new ArrayList<>();
+            Map<String, String> message = new HashMap<>();
+            messages.add(message);
+            message.put("role", "user");
+            message.put("content", this.request);
+            requestBody.put("messages", messages);
+            requestBody.put("temperature", 0.5);
+            requestBody.put("max_tokens", 300);
 
-        //Send request
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
-        messageConverters.add(new MappingJackson2HttpMessageConverter());
-        template.setMessageConverters(messageConverters);
-        ResponseEntity<Object> responseHttp = template.postForEntity(url, request, Object.class);
+            //Send request
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+            messageConverters.add(new MappingJackson2HttpMessageConverter());
+            template.setMessageConverters(messageConverters);
+            ResponseEntity<Object> responseHttp = template.postForEntity(url, request, Object.class);
 
-        //Decode solution to obtain body
-        JsonNode jsonResponse = ContentResponse.decodeResponse(responseHttp);
-        responseToSend = jsonResponse.get("choices").get(0).get("message").get("content").asText();
+            //Decode solution to obtain body
+            JsonNode jsonResponse = ContentResponse.decodeResponse(responseHttp);
+            responseToSend = jsonResponse.get("choices").get(0).get("message").get("content").asText();
 
-        //Print response
-        rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.response", responseToSend);
+            //Print response
+            rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.response", responseToSend);
 
-        //Send event
-        responseEvent.publishEvent(response);
+            //Send event
+            responseEvent.publishEvent(response);
+        }
+        condicion=false;
+
     }
 }

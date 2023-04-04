@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
@@ -20,26 +21,31 @@ public class Consumer {
     private final RabbitTemplate rabbitTemplate;
     private Scanner scanner = new Scanner(System.in);
     private CustomEvent request = new CustomEvent(this, "request");
+    private boolean condicion = true;
 
     //********** FUNCTIONS **********//
     public Consumer(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
-
     @RabbitListener(queues = "${queue.response}")
     public void receiveMessage (String message){
         System.out.println("Received message: "+message);
         System.out.println("______________________________________");
+        condicion=true;
     }
-
     @EventListener(condition = "event.id == 'response'")
     public void  sendNewRequest(CustomEvent event){
-            System.out.println("______________________________________");
-            System.out.println("Enter your Request: ");
-            userPrompt = scanner.nextLine();
-            rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.request", userPrompt);
-            System.out.println("Sending request");
-            requestEvent.publishEvent(request);
+           if (condicion == true){
+               System.out.println("______________________________________");
+               System.out.println("Enter your Request: ");
+               userPrompt = scanner.nextLine();
+               rabbitTemplate.convertAndSend(MessagingConfig.TOPICEXCHANGE_NAME, "message.request", userPrompt);
+               System.out.println("Sending request");
+
+               requestEvent.publishEvent(request);
+           }
+           condicion = false;
+
     }
 }
 
