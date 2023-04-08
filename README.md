@@ -13,5 +13,4 @@ This is an application under Spring Boot Framework. It has two main classes:
 ## Future implementations
 - Put the application on Docker container
 - Develop a Front-End and make the use send the queries through it
-- Improve the application by restructuring
 - Adding Java Doc

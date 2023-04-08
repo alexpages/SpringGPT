@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 @Component
 public class Runner {
@@ -29,28 +28,39 @@ public class Runner {
     private RestTemplate template = new RestTemplate();
     private boolean condicion = false;
     @Autowired
-    private Response ContentResponse;
+    private Response contentResponse;
     private String request;
     private String responseToSend;
     private final RabbitTemplate rabbitTemplate;
     private CustomEvent response = new CustomEvent(this, "response");
-    private CountDownLatch latch = new CountDownLatch(0);
 
     //********** FUNCTIONS **********//
+    /**
+     * This it the constructor of Runner class, which requires a rabbitTemplate.
+     * @param rabbitTemplate It will be used to send information through RabbitMQ messaging broker.
+     */
     public Runner(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+    /**
+     * This class obtain the request from Consumer class sent through RabbitMQ messaging queue.
+     * @param message String message received from messaging queue.
+     */
     @RabbitListener(queues = "${queue.request}")
-    public void receiveRequest (String message) throws InterruptedException {
+    public void receiveRequest (String message) {
         this.request = message;
         condicion = true;
     }
 
+    /**
+     * This method sends query to ChatGPT through HTTP and gets the information. After it sends the content of the body to the RabbitMQ queue so Consumer can obtain the information.
+     * @param event Which is required for SpringBoot @EventListener
+     */
     @EventListener(condition = "event.id == 'request'")
-    public synchronized void sendRequest(CustomEvent event) throws IOException, InterruptedException {
+    public synchronized void sendRequest(CustomEvent event) throws IOException {
         //Headers
-        if (condicion == true){
+        if (condicion){
             System.out.println(this.request);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON); //Establish the body will be in .json format
@@ -77,7 +87,7 @@ public class Runner {
             ResponseEntity<Object> responseHttp = template.postForEntity(url, request, Object.class);
 
             //Decode solution to obtain body
-            JsonNode jsonResponse = ContentResponse.decodeResponse(responseHttp);
+            JsonNode jsonResponse = contentResponse.decodeResponse(responseHttp);
             responseToSend = jsonResponse.get("choices").get(0).get("message").get("content").asText();
 
             //Print response
